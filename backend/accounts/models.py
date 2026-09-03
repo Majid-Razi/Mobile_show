@@ -51,20 +51,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         })
     
     phone_number = models.CharField(
-        max_length=11,
-        unique=True,
-        validators=[
-            RegexValidator(
-                regex=r'^09\d{9}$',
-                message= " شماره موبایل باید با 09 شروع شود و 11 رقم باشد"
-            ),
-            MinLengthValidator(10)
-        ]
-        verbose_name='Phone Number',
-        error_messages={
-            'unique': "A user with that phone number already exists.",
-        }
-    )
+            max_length=11,
+            unique=True,
+            validators=[
+                RegexValidator(
+                    regex=r'^09\d{9}$',
+                    message= " شماره موبایل باید با 09 شروع شود و 11 رقم باشد"
+                ),
+                MinLengthValidator(10)
+            ],
+            verbose_name='Phone Number',
+            error_messages={
+                'unique': "A user with that phone number already exists.",
+                })
+
+    
     #========Name Fields========
     full_name = models.CharField(
         max_length=150, 
