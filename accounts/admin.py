@@ -270,3 +270,6 @@ class CustomUserAdmin(UserAdmin):
         if obj and obj.is_superuser:
             return request.user.is_superuser
         return super().has_delete_permission(request, obj)
+
+
+        
