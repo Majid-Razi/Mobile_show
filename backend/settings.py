@@ -76,9 +76,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_django_db',       # اسم دیتابیس
-        'USER': 'majid',            # اسم کاربری که ساختی
-        'PASSWORD': '@Majid8198',    # رمزی که گذاشتی
+        'NAME': 'mobile_show_db',
+        'USER': 'majid',
+        'PASSWORD': '@Majid8198',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'OPTIONS': {
