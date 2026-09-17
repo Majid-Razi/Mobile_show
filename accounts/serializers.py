@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..accounts.models import User
+from .models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
 
@@ -167,7 +167,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         write_only = True,
         required = True,
         style = {"input_type":"password"},
-        error_message ={
+        error_messages ={
             "required" : "رمز جدید الزامی است"
         }
     )
@@ -176,7 +176,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         write_only = True,
         required = True,
         style = {"input_type":"password"},
-        error_message =
+        error_messages =
         {
             "required" : "تکرار رمز جدید الزامی است"
         }
@@ -232,7 +232,7 @@ class LoginSerializer(serializers.Serializer):
 
     email = serializers.EmailField(
         required = True,
-        error_message = {
+        error_messages = {
             "required" : "وارد کردن ایمیل الزامی است",
             "invalid" : "فرمت ایمیل نامعتبر است"
         }
@@ -242,7 +242,7 @@ class LoginSerializer(serializers.Serializer):
         write_only = True,
         required = True,
         style = {"input_type": "password"},
-        error_message = {
+        error_messages = {
             "required":"وارد کردن رمز عبور الزامی است"
         }
     )
@@ -368,14 +368,14 @@ class ResetPasswordSerializer(serializers.Serializer):
     """
 
     new_password = serializers.CharField(
-        write_only=True,
-        required=True,
-        validators=[validate_password],
-        style={'input_type': 'password'},
-        error_messages={
-            'required': 'رمز عبور جدید الزامی است',
-        }
-    )
+    write_only=True,
+    min_length=8,
+    error_messages={
+        'required': 'وارد کردن رمز جدید الزامی است.',
+        'blank': 'رمز جدید نمی‌تواند خالی باشد.',
+        'min_length': 'رمز جدید باید حداقل ۸ کاراکتر باشد.',
+    }
+)
     
     new_password2 = serializers.CharField(
         write_only=True,
