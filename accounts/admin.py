@@ -13,7 +13,6 @@ class CustomUserAdmin(UserAdmin):
 
     #=======نمایش لیست کاربران در پنل ادمین========
     list_display = [
-        'id',
         'email',
         'phone_number',
         'full_name',

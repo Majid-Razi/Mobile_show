@@ -121,6 +121,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name='تعداد تلاش‌های ناموفق ورود')
 
     last_failed_login = models.DateTimeField(
+        null=True,
         blank=True,
         verbose_name='آخرین تلاش ناموفق ورود')
 

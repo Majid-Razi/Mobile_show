@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
+from django.contrib.auth import authenticate, get_user_model
 
+User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
     """
@@ -42,12 +43,11 @@ class UserSerializer(serializers.ModelSerializer):
 # ==========================================
 # ۴. سریالایزر ثبت نام کاربر جدید
 # ==========================================
-
 class UserRegisterationSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(
-        write_only = True,
-        required = True,
+        write_only=True,
+        required=True,
         validators=[validate_password],
         style={'input_type': 'password'},
         error_messages={
@@ -57,26 +57,29 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
     )
 
     password2 = serializers.CharField(
-            write_only = True,
-            required = True,
-            validators=[validate_password],
-            style={'input_type': 'password'},
-            error_messages={
-                'required': 'تکرار رمز عبور الزامی است',
-                'blank': 'تکرار رمز عبور نمی‌تواند خالی باشد',
-            }
-        )
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'},
+        error_messages={
+            'required': 'تکرار رمز عبور الزامی است',
+            'blank': 'تکرار رمز عبور نمی‌تواند خالی باشد',
+        }
+    )
 
     class Meta:
-        Model = User
+        model = User          # ✅ حروف کوچک
         fields = [
             "email",
             "full_name",
-            "first_name",
-            "last_name",
+            # "first_name",
+            # "last_name",
+            "avatar",
+            "bio",
+            "website",
             "phone_number",
             "password",
-            "password2"
+            "password2",
         ]
 
         extra_kwargs = {
@@ -98,50 +101,42 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
             'last_name': {'required': False},
         }
 
-
-    def validate_email(self,value):
-        if User.objects.filter(email = value).exists():
-           raise serializers.ValidationError("This email already exist.")
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email already exist.")
         return value
-
 
     def validate_phone_number(self, value):
         import re
-
         if not re.match(r'^09\d{9}$', value):
-            raise serializers.ValidationError("شماره موبایل باید با 09 شروع شود و 11 رقم باشد")
-        
-        if User.objects.filter(phone_number = value).exists():
+            raise serializers.ValidationError(
+                "شماره موبایل باید با 09 شروع شود و 11 رقم باشد"
+            )
+        if User.objects.filter(phone_number=value).exists():
             raise serializers.ValidationError("This phone_number already exist.")
-
         return value
 
     def validate(self, attrs):
         """
         اعتبارسنجی تطابق رمز عبور
-
         """
-        if attrs[self.password] != attrs[self.password2]:
-            raise serializers.ValidationError(
-                {
+        if attrs['password'] != attrs['password2']:   # ✅ رشته، نه self.password
+            raise serializers.ValidationError({
                 'password': 'رمزهای عبور مطابقت ندارند',
-                'password2': 'رمزهای عبور مطابقت ندارند'
-                })
+                'password2': 'رمزهای عبور مطابقت ندارند',
+            })
         return attrs
 
-
     def create(self, validated_data):
-       """
+        """
         create new user
-       """
+        """
         # حذف password2 از داده‌ها
-
-       validated_data.pop(self.password2)
+        validated_data.pop('password2')   # ✅ رشته، نه self.password2
 
         # ایجاد کاربر با استفاده از CustomUserManager
-       user = User.objects.create_user(**validated_data)
-       return user
-
+        user = User.objects.create_user(**validated_data)
+        return user
 
 # ==========================================
 # ۴. سریالایزر تغییر رمز عبور
@@ -223,143 +218,73 @@ class ChangePasswordSerializer(serializers.Serializer):
 # ==========================================
 # ۵. سریالایزر لاگین 
 # ==========================================
-
 class LoginSerializer(serializers.Serializer):
+
+
+
     """
     سریالایزر برای ورود کاربر
-
     """
 
     email = serializers.EmailField(
-        required = True,
-        error_messages = {
-            "required" : "وارد کردن ایمیل الزامی است",
-            "invalid" : "فرمت ایمیل نامعتبر است"
+        required=True,
+        error_messages={
+            "required": "وارد کردن ایمیل الزامی است",
+            "invalid": "فرمت ایمیل نامعتبر است",
         }
     )
 
     password = serializers.CharField(
-        write_only = True,
-        required = True,
-        style = {"input_type": "password"},
-        error_messages = {
-            "required":"وارد کردن رمز عبور الزامی است"
+        write_only=True,
+        required=True,
+        style={"input_type": "password"},
+        error_messages={
+            "required": "وارد کردن رمز عبور الزامی است"
         }
     )
 
     def validate(self, attrs):
         """
         اعتبارسنجی اطلاعات ورود
-
         """
-
         email = attrs.get('email')
         password = attrs.get('password')
 
         try:
-            user = User.objects.get(email = email)
+            user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError(
-                {
-                    'email': 'کاربری با این ایمیل یافت نشد'
-                }
-            )
+            raise serializers.ValidationError({
+                'email': 'کاربری با این ایمیل یافت نشد'
+            })
+
         # بررسی مسدود بودن کاربر
         if user.is_blocked:
             raise serializers.ValidationError({
                 'email': 'این کاربر مسدود شده است. با پشتیبانی تماس بگیرید.'
             })
-            
+
         # بررسی فعال بودن کاربر
         if not user.is_active:
             raise serializers.ValidationError({
                 'email': 'این کاربر غیرفعال است.'
             })
-            
+
         # بررسی رمز عبور
         if not user.check_password(password):
-            # افزایش تعداد تلاش‌های ناموفق
             user.increase_failed_attempts()
             raise serializers.ValidationError({
                 'password': 'رمز عبور اشتباه است'
             })
-        
 
         # بازنشانی تلاش‌های ناموفق در صورت ورود موفق
         if user.failed_login_attempts > 0:
             user.reset_failed_attempts()
 
-        # ذخیره کاربر در context برای استفاده در View
-        self.context['user'] = user
-            
+        # ✅ قرار دادن کاربر در attrs (نه context)
+        attrs['user'] = user
+
         return attrs
 
-
-
-# ==========================================
-# ۶. سریالایزر لیست کاربران (مخصوص ادمین)
-# ==========================================
-
-class UserListSerializer(serializers.ModelSerializer):
-    """
-    سریالایزر سبک برای نمایش لیست کاربران
-    استفاده در: لیست کاربران (فقط ادمین)
-    """
-
-    class Meta:
-        model = User
-        fields = [
-            'id',
-            'email',
-            'phone_number',
-            'full_name',
-            'is_active',
-            'is_verified',
-            'is_blocked',
-            'date_joined',
-            'last_login',
-        ]
-        read_only_fields = '__all__'
-
-# ==========================================
-# ۷. سریالایزر فراموشی رمز عبور
-# ==========================================
-
-class ForgetPasswordSerializer(serializers.Serializer):
-    """
-    سریالایزر برای ارسال لینک بازیابی رمز عبور
-
-    """
-
-    email = serializers.EmailField(
-        required = True,
-                error_messages={
-            'required': 'ایمیل الزامی است',
-            'invalid': 'فرمت ایمیل نامعتبر است',
-        }
-    )
-
-    def validate_email(self, value):
-        """
-        بررسی وجود کاربر با این ایمیل
-        """
-
-        try:
-            user = User.objects.get(email = value)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("کاربری با این ایمیل یافت نشد")
-
-        if not user.is_active:
-            raise serializers.ValidationError("این کاربر غیرفعال است")
-
-
-
-        if user.is_blocked:
-            raise serializers.ValidationError("این کاربر مسدود شده است")
-
-# ==========================================
-# ۸. سریالایزر بازنشانی رمز عبور
-# ==========================================
 
 
 class ResetPasswordSerializer(serializers.Serializer):
