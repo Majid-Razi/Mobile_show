@@ -1,4 +1,5 @@
 from django.conf import settings
+from rest_framework import generics
 from rest_framework.generics import CreateAPIView, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -9,9 +10,15 @@ from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+
 
 from .models import User
-from .serializers import UserSerializer,LoginSerializer, UserRegisterationSerializer
+from .serializers import (UserSerializer,LoginSerializer, UserRegisterationSerializer,
+                          ChangePasswordSerializer)
 
 # class RegisterView(CreateAPIView):
     # serializer_class = UserSerializer
@@ -298,3 +305,33 @@ class RefreshTokenView(TokenRefreshView):
         
         except InvalidToken:
             return  Response({"error": "Invalid Token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        """
+        نمایش فرم برای وارد کردن اطلاعات
+        """
+        serializer = self.get_serializer()
+        return Response({
+            "detail": "برای تغییر رمز عبور، فرم زیر را پر کنید و روی POST بزنید.",
+            "fields": {
+                "old_password": "رمز عبور فعلی",
+                "new_password": "رمز عبور جدید",
+                "new_password2": "تکرار رمز عبور جدید",
+            }
+        })
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        update_session_auth_hash(request, user)
+        return Response(
+            {"detail": "رمز عبور با موفقیت تغییر یافت"},
+            status=status.HTTP_200_OK
+        )

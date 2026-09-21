@@ -138,81 +138,6 @@ class UserRegisterationSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
-# ==========================================
-# ۴. سریالایزر تغییر رمز عبور
-# ==========================================
-
-class ChangePasswordSerializer(serializers.Serializer):
-    """
-    سریالایزر برای تغییر رمز عبور
-
-    """
-
-    old_password = serializers.CharField(
-        write_only=True,
-        required=True,
-        style={'input_type': 'password'},
-        error_messages={
-            'required': 'رمز عبور فعلی الزامی است',
-        }
-    )
-
-
-    new_password = serializers.CharField(
-        write_only = True,
-        required = True,
-        style = {"input_type":"password"},
-        error_messages ={
-            "required" : "رمز جدید الزامی است"
-        }
-    )
-
-    new_password2 = serializers.CharField(
-        write_only = True,
-        required = True,
-        style = {"input_type":"password"},
-        error_messages =
-        {
-            "required" : "تکرار رمز جدید الزامی است"
-        }
-    )
-
-    def validate_old_password(self, value):
-        """
-        اعتبارسنجی رمز عبور فعلی
-        """
-
-        user = self.context['request'].user
-        if not user.check_password(value):
-            raise serializers.ValidationError("رمز عبور فعلی اشتباه است")
-        return value
-
-
-    def validate(self, attrs):
-        """
-        اعتبارسنجی تطابق رمز عبور جدید
-
-        """
-
-        if attrs[self.new_password] != attrs[self.new_password2]:
-            raise serializers.ValidationError(
-                {
-                    "new_password":"رمز های عبور جدید مطابقت ندارند",
-                    "new_password2":"رمز های عبور جدید مطابقت ندارند",
-                }
-            )
-        return attrs
-    
-    def save(self, **kwargs):
-        """
-        ذخیره رمز عبور جدید
-
-        """
-        user = self.context['request'].user
-        user.set_password(self.validated_data['new_password'])
-        user.save()
-        return user
-
 
     
 # ==========================================
@@ -285,23 +210,97 @@ class LoginSerializer(serializers.Serializer):
 
         return attrs
 
+# ==========================================
+# ۴. سریالایزر تغییر رمز عبور
+# ==========================================
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    سریالایزر برای تغییر رمز عبور
+
+    """
+
+    old_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+        error_messages={
+            'required': 'رمز عبور فعلی الزامی است',
+        }
+    )
+
+
+    new_password = serializers.CharField(
+        write_only = True,
+        required = True,
+        style = {"input_type":"password"},
+        error_messages ={
+            "required" : "رمز جدید الزامی است"
+        }
+    )
+
+    new_password2 = serializers.CharField(
+        write_only = True,
+        required = True,
+        style = {"input_type":"password"},
+        error_messages =
+        {
+            "required" : "تکرار رمز جدید الزامی است"
+        }
+    )
+
+    def validate_old_password(self, value):
+        """
+        اعتبارسنجی رمز عبور فعلی
+        """
+
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("رمز عبور فعلی اشتباه است")
+        return value
+
+
+    def validate(self, attrs):
+        """
+        اعتبارسنجی تطابق رمز عبور جدید
+
+        """
+
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError(
+                {"new_password": "رمز های عبور جدید مطابقت ندارند"}
+            )
+        return attrs
+        
+    def save(self, **kwargs):
+        """
+        ذخیره رمز عبور جدید
+
+        """
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user
+
+
 
 
 class ResetPasswordSerializer(serializers.Serializer):
     """
     سریالایزر برای بازنشانی رمز عبور
     """
-
     new_password = serializers.CharField(
-    write_only=True,
-    min_length=8,
-    error_messages={
-        'required': 'وارد کردن رمز جدید الزامی است.',
-        'blank': 'رمز جدید نمی‌تواند خالی باشد.',
-        'min_length': 'رمز جدید باید حداقل ۸ کاراکتر باشد.',
-    }
-)
-    
+        write_only=True,
+        required=True,
+        min_length=8,
+        style={'input_type': 'password'},
+        error_messages={
+            'required': 'وارد کردن رمز جدید الزامی است.',
+            'blank': 'رمز جدید نمی‌تواند خالی باشد.',
+            'min_length': 'رمز جدید باید حداقل ۸ کاراکتر باشد.',
+        }
+    )
+
     new_password2 = serializers.CharField(
         write_only=True,
         required=True,
@@ -311,31 +310,35 @@ class ResetPasswordSerializer(serializers.Serializer):
         }
     )
 
+    def validate_new_password(self, value):
+        # اعتبارسنجی قدرت رمز با قوانین Django
+        validate_password(value)
+        return value
 
     def validate(self, attrs):
-        """
-        اعتبارسنجی تطابق رمز عبور
-
-        """
-
-        if attrs[self.new_password] != attrs[self.new_password2]:
+        if attrs['new_password'] != attrs['new_password2']:
             raise serializers.ValidationError(
-                {
-                    'new_password': 'رمزهای عبور مطابقت ندارند',
-                    'new_password2': 'رمزهای عبور مطابقت ندارند'
-                }
+                {'new_password': 'رمزهای عبور مطابقت ندارند'}
             )
         return attrs
 
     def save(self, user):
-        """
-        ذخیره رمز عبور جدید
-
-        """
-
-        user.set_password(self.validated_data["new_password"])
+        user.set_password(self.validated_data['new_password'])
         user.save()
-        return user 
+        return user
+
+
+
+# ۲. سریالایزر درخواست بازنشانی (فراموشی)
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        required=True,
+        error_messages={
+            'required': 'ایمیل الزامی است',
+            'invalid': 'ایمیل معتبر نیست',
+        }
+    )
 
 
 # ==========================================
