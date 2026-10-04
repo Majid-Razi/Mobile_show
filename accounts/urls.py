@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db.models.functions import Log
-from django.urls import path, include
+from django.urls import path
 from .views import RegisterView, LoginView, LogoutView, ChangePasswordView, RefreshTokenView
 
 

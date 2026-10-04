@@ -127,7 +127,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 # ========other Fields========
     avatar = models.ImageField(
-        upload_to='avatars/',
+        upload_to='images/avatars/',
         blank=True,
         null=True,
         verbose_name='آواتار')
