@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_simplejwt.token_blacklist',
     "accounts",
+    "drf_spectacular",
+    "category",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -146,8 +148,17 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'accounts.authentication.CookieJWTAuthentication',
     ],
-    # ... بقیه تنظیمات
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Mobile Show API',
+    'DESCRIPTION': 'API documentation for mobile-show project',
+    'VERSION': '1.0.0',
+}
+
 
 
 from datetime import timedelta
