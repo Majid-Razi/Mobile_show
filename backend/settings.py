@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "category",
     "products",
+    "articles",
+    "discounts",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -169,3 +171,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(minutes=20),   # ← اگه می‌خوای سخت‌گیرانه باشه، هم‌زمان با access
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

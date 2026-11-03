@@ -24,7 +24,7 @@ class Product(models.Model):
     
     # توضیحات و تصاویر
     description = models.TextField(blank=True, null=True, verbose_name="Description")
-    image = models.ImageField(upload_to='products/', blank=True, null=True, verbose_name="Main Image")
+    image = models.ImageField(upload_to='media/products/images/', blank=True, null=True, verbose_name="Main Image")
     
     # ارتباط با کاربر سازنده (مشابه کتگوری)
     owner = models.ForeignKey(
